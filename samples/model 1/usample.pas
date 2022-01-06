@@ -28,7 +28,7 @@ type
     { Private declarations }
   public
     { Public declarations }
-    function Valid: IDataValidatorValues;
+    function Valid: IDataValidatorValueResult;
     procedure ShowResult(const AResult: IDataValidatorResult);
   end;
 
@@ -41,12 +41,12 @@ implementation
 
 procedure TForm1.btnValidarClick(Sender: TObject);
 begin
-  ShowResult(Valid.Checked);
+  ShowResult(Valid.Check);
 end;
 
 procedure TForm1.btnValidarTodosClick(Sender: TObject);
 begin
-  ShowResult(Valid.CheckedAll);
+  ShowResult(Valid.CheckAll);
 end;
 
 procedure TForm1.ShowResult(const AResult: IDataValidatorResult);
@@ -63,7 +63,7 @@ begin
   AResult.Informations.GetItem(0).OnExecute;
 end;
 
-function TForm1.Valid: IDataValidatorValues;
+function TForm1.Valid: IDataValidatorValueResult;
 begin
   Result :=
 

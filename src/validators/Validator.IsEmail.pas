@@ -1,8 +1,33 @@
 {
-  *************************************
-  Created by Danilo Lucas
-  Github - https://github.com/dliocode
-  *************************************
+  ********************************************************************************
+
+  Github - https://github.com/dliocode/datavalidator
+
+  ********************************************************************************
+
+  MIT License
+
+  Copyright (c) 2021 Danilo Lucas
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  ********************************************************************************
 }
 
 unit Validator.IsEmail;
@@ -16,8 +41,9 @@ uses
 type
   TValidatorIsEmail = class(TDataValidatorItemBase, IDataValidatorItem)
   private
+    function GetPattern: string;
   public
-    function Checked: IDataValidatorResult;
+    function Check: IDataValidatorResult;
     constructor Create(const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil);
   end;
 
@@ -27,11 +53,11 @@ implementation
 
 constructor TValidatorIsEmail.Create(const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil);
 begin
-  FMessage := AMessage;
-  FExecute := AExecute;
+  SetMessage(AMessage);
+  SetExecute(AExecute);
 end;
 
-function TValidatorIsEmail.Checked: IDataValidatorResult;
+function TValidatorIsEmail.Check: IDataValidatorResult;
 var
   LValue: string;
   R: Boolean;
@@ -40,12 +66,25 @@ begin
   R := False;
 
   if not Trim(LValue).IsEmpty then
-    R := TRegEx.IsMatch(LValue, '^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+$');
+    R := TRegEx.IsMatch(LValue, GetPattern);
 
   if FIsNot then
     R := not R;
 
-  Result := TDataValidatorResult.New(R, TDataValidatorInformation.New(LValue, FMessage, FExecute));
+  Result := TDataValidatorResult.Create(R, TDataValidatorInformation.Create(LValue, GetMessage, FExecute));
+end;
+
+function TValidatorIsEmail.GetPattern: string;
+begin
+  Result := '^((?>[a-zA-Z\d!#$%&''*+\-/=?^_`{|}~]+\x20*' +
+    '|"((?=[\x01-\x7f])[^"\\]|\\[\x01-\x7f])*"\' +
+    'x20*)*(?<angle><))?((?!\.)(?>\.?[a-zA-Z\d!' +
+    '#$%&''*+\-/=?^_`{|}~]+)+|"((?=[\x01-\x7f])' +
+    '[^"\\]|\\[\x01-\x7f])*")@(((?!-)[a-zA-Z\d\' +
+    '-]+(?<!-)\.)+[a-zA-Z]{2,}|\[(((?(?<!\[)\.)' +
+    '(25[0-5]|2[0-4]\d|[01]?\d?\d)){4}|[a-zA-Z\' +
+    'd\-]*[a-zA-Z\d]:((?=[\x01-\x7f])[^\\\[\]]|' +
+    '\\[\x01-\x7f])+)\])(?(angle)>)$';
 end;
 
 end.

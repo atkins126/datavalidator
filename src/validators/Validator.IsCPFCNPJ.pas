@@ -1,8 +1,33 @@
 {
-  *************************************
-  Created by Danilo Lucas
-  Github - https://github.com/dliocode
-  *************************************
+  ********************************************************************************
+
+  Github - https://github.com/dliocode/datavalidator
+
+  ********************************************************************************
+
+  MIT License
+
+  Copyright (c) 2021 Danilo Lucas
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  ********************************************************************************
 }
 
 unit Validator.IsCPFCNPJ;
@@ -10,50 +35,58 @@ unit Validator.IsCPFCNPJ;
 interface
 
 uses
-  DataValidator.ItemBase, Validator.IsCPF, Validator.IsCNPJ,
+  DataValidator.ItemBase,
   System.SysUtils;
 
 type
   TValidatorIsCPFCNPJ = class(TDataValidatorItemBase, IDataValidatorItem)
   private
-    FMessage: string;
-    FExecute: TDataValidatorInformationExecute;
-    FValidatorCPF: IDataValidatorItem;
-    FValidatorCNPJ: IDataValidatorItem;
   public
-    function Checked: IDataValidatorResult;
+    function Check: IDataValidatorResult;
     constructor Create(const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil);
   end;
 
 implementation
 
+uses
+  Validator.IsCPF, Validator.IsCNPJ;
+
 { TValidatorIsCPFCNPJ }
 
 constructor TValidatorIsCPFCNPJ.Create(const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil);
 begin
-  FMessage := AMessage;
-  FExecute := AExecute;
-
-  FValidatorCPF := TValidatorIsCPF.Create(AMessage, AExecute);
-  FValidatorCNPJ := TValidatorIsCNPJ.Create(AMessage, AExecute);
+  SetMessage(AMessage);
+  SetExecute(AExecute);
 end;
 
-function TValidatorIsCPFCNPJ.Checked: IDataValidatorResult;
+function TValidatorIsCPFCNPJ.Check: IDataValidatorResult;
 var
+  LValue: string;
   R: Boolean;
+  LValidatorCPF: IDataValidatorItem;
+  LValidatorCNPJ: IDataValidatorItem;
 begin
-  FValidatorCPF.SetIsNot(FIsNot);
-  FValidatorCPF.SetValue(FValue);
+  LValue := GetValueAsString;
+  R := False;
 
-  FValidatorCNPJ.SetIsNot(FIsNot);
-  FValidatorCNPJ.SetValue(FValue);
+  if not Trim(LValue).IsEmpty then
+  begin
+    LValidatorCPF := TValidatorIsCPF.Create('');
+    LValidatorCPF.SetValue(LValue);
+    R := LValidatorCPF.Check.OK;
 
-  R := FValidatorCPF.Checked.OK;
+    if not R then
+    begin
+      LValidatorCNPJ := TValidatorIsCNPJ.Create('');
+      LValidatorCNPJ.SetValue(LValue);
+      R := LValidatorCNPJ.Check.OK;
+    end;
+  end;
 
-  if not R then
-    R := FValidatorCNPJ.Checked.OK;
+  if FIsNot then
+    R := not R;
 
-  Result := TDataValidatorResult.New(R, TDataValidatorInformation.New(GetValueAsString, FMessage, FExecute));
+  Result := TDataValidatorResult.Create(R, TDataValidatorInformation.Create(LValue, GetMessage, FExecute));
 end;
 
 end.

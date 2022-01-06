@@ -1,8 +1,33 @@
 {
-  *************************************
-  Created by Danilo Lucas
-  Github - https://github.com/dliocode
-  *************************************
+  ********************************************************************************
+
+  Github - https://github.com/dliocode/datavalidator
+
+  ********************************************************************************
+
+  MIT License
+
+  Copyright (c) 2021 Danilo Lucas
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  ********************************************************************************
 }
 
 unit DataValidator.Information;
@@ -10,11 +35,11 @@ unit DataValidator.Information;
 interface
 
 uses
-  DataValidator.Types, DataValidator.Information.Intf,
-  System.Classes;
+  DataValidator.Information.Intf,
+  System.Classes, System.Generics.Collections, System.SysUtils;
 
 type
-  TDataValidatorInformation = class(TInterfacedObject, IValidatorInformation)
+  TDataValidatorInformation = class(TInterfacedObject, IDataValidatorInformation)
   private
     FValue: Variant;
     FMessage: string;
@@ -25,50 +50,45 @@ type
     function Execute: TDataValidatorInformationExecute;
     procedure OnExecute;
 
-    constructor Create(const AValue: string; const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil);
+    constructor Create(const AValue: string; const AMessage: string; const AExecute: TDataValidatorInformationExecute);
+    destructor Destroy; override;
 
-    class function New(const AValue: string; const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil): IValidatorInformation;
   end;
 
   TDataValidatorInformations = class(TInterfacedObject, IDataValidatorInformations)
   private
-    FList: IInterfaceList;
+    FList: TList<IDataValidatorInformation>;
   public
-    function Add(const ADataInformation: IValidatorInformation): IDataValidatorInformations; overload;
+    function Add(const ADataInformation: IDataValidatorInformation): IDataValidatorInformations; overload;
     function Add(const ADataInformations: IDataValidatorInformations): IDataValidatorInformations; overload;
 
-    function GetItem(const Index: Integer): IValidatorInformation;
+    function GetItem(const Index: Integer): IDataValidatorInformation;
     function Count: Integer;
     function Message: string;
 
     constructor Create;
     destructor Destroy; override;
-
-    class function New: IDataValidatorInformations;
   end;
 
 implementation
 
 { TDataValidatorInformations }
 
-class function TDataValidatorInformations.New: IDataValidatorInformations;
-begin
-  Result := TDataValidatorInformations.Create;
-end;
-
 constructor TDataValidatorInformations.Create;
 begin
   inherited;
-  FList := TInterfaceList.Create;
+  FList := TList<IDataValidatorInformation>.Create;
 end;
 
 destructor TDataValidatorInformations.Destroy;
 begin
   FList.Clear;
+  FList.Free;
+
   inherited;
 end;
 
-function TDataValidatorInformations.Add(const ADataInformation: IValidatorInformation): IDataValidatorInformations;
+function TDataValidatorInformations.Add(const ADataInformation: IDataValidatorInformation): IDataValidatorInformations;
 begin
   Result := Self;
   FList.Add(ADataInformation);
@@ -84,9 +104,9 @@ begin
     FList.Add(ADataInformations.GetItem(I));
 end;
 
-function TDataValidatorInformations.GetItem(const Index: Integer): IValidatorInformation;
+function TDataValidatorInformations.GetItem(const Index: Integer): IDataValidatorInformation;
 begin
-  Result := FList.Items[Index] as IValidatorInformation;
+  Result := FList.Items[Index];
 end;
 
 function TDataValidatorInformations.Count: Integer;
@@ -104,24 +124,24 @@ begin
     for I := 0 to Pred(Count) do
       LSL.Add(GetItem(I).Message);
 
-    Result := LSL.Text;
+    Result := Trim(LSL.Text);
   finally
-    LSL.DisposeOf
+    LSL.Free
   end;
 end;
 
 { TDataValidatorInformation }
 
-class function TDataValidatorInformation.New(const AValue: string; const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil): IValidatorInformation;
-begin
-  Result := TDataValidatorInformation.Create(AValue, AMessage, AExecute);
-end;
-
-constructor TDataValidatorInformation.Create(const AValue: string; const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil);
+constructor TDataValidatorInformation.Create(const AValue: string; const AMessage: string; const AExecute: TDataValidatorInformationExecute);
 begin
   FValue := AValue;
   FMessage := AMessage;
   FExecute := AExecute;
+end;
+
+destructor TDataValidatorInformation.Destroy;
+begin
+  inherited;
 end;
 
 function TDataValidatorInformation.Value: string;

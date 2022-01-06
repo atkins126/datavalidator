@@ -20,10 +20,10 @@ type
     procedure btnValidarClick(Sender: TObject);
   private
     { Private declarations }
-    function SchemaNome(const AField: string): IDataValidatorSchema;
+    function SchemaNome(const AField: string): IDataValidatorSchemaContext;
   public
     { Public declarations }
-    function Valid: IDataValidatorValues;
+    function Valid: IDataValidatorValueResult;
     procedure ShowResult(const AResult: IDataValidatorResult);
   end;
 
@@ -37,19 +37,19 @@ implementation
 
 procedure TForm1.btnValidarClick(Sender: TObject);
 begin
-  ShowResult(Valid.Checked);
+  ShowResult(Valid.Check);
 end;
 
 procedure TForm1.btnValidarTodosClick(Sender: TObject);
 begin
-  ShowResult(Valid.CheckedAll);
+  ShowResult(Valid.CheckAll);
 end;
 
-function TForm1.SchemaNome(const AField: string): IDataValidatorSchema;
+function TForm1.SchemaNome(const AField: string): IDataValidatorSchemaContext;
 begin
   Result :=
-  TDataValidator
-    .Schema
+  TDataValidator.Schema
+    .Validate
       .Trim
       .&Not.IsEmpty.WithMessage(Format('Preencha o campo %s !', [AField])) // Não pode ser vazio
       .IsLength(0, 10).WithMessage(Format('O campo %s deve conter no máximo 10 caracteres!', [AField]))
@@ -69,7 +69,7 @@ begin
   Memo1.Lines.Add(Format('Total errors: %d', [AResult.Informations.Count]));
 end;
 
-function TForm1.Valid: IDataValidatorValues;
+function TForm1.Valid: IDataValidatorValueResult;
 begin
   Result := TDataValidator.Values
 
@@ -79,7 +79,7 @@ begin
 
   .Validate(LabeledEditApelido.Text)
     .AddSchema(SchemaNome('Apelido'))
-    .IsUppercase.WithMessage('Deve ser tudo Maiuscula o Apelido!') // Add outra validação
+    .IsUppercase.WithMessage('O apelido (${value}) deve ser digitado tudo em maiúscula!') // Add outra validação
   .&End
 
   .Validate(LabeledEditRazaoSocial.Text)

@@ -1,8 +1,33 @@
 ﻿{
-  *************************************
-  Created by Danilo Lucas
-  Github - https://github.com/dliocode
-  *************************************
+  ********************************************************************************
+
+  Github - https://github.com/dliocode/datavalidator
+
+  ********************************************************************************
+
+  MIT License
+
+  Copyright (c) 2021 Danilo Lucas
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  ********************************************************************************
 }
 
 unit Validator.IsAlphanumeric;
@@ -18,7 +43,7 @@ type
   private
     function GetPattern: string;
   public
-    function Checked: IDataValidatorResult;
+    function Check: IDataValidatorResult;
     constructor Create(const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil);
   end;
 
@@ -28,11 +53,11 @@ implementation
 
 constructor TValidatorIsAlphanumeric.Create(const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil);
 begin
-  FMessage := AMessage;
-  FExecute := AExecute;
+  SetMessage(AMessage);
+  SetExecute(AExecute);
 end;
 
-function TValidatorIsAlphanumeric.Checked: IDataValidatorResult;
+function TValidatorIsAlphanumeric.Check: IDataValidatorResult;
 var
   LValue: string;
   R: Boolean;
@@ -46,7 +71,7 @@ begin
   if FIsNot then
     R := not R;
 
-  Result := TDataValidatorResult.New(R, TDataValidatorInformation.New(LValue, FMessage, FExecute));
+  Result := TDataValidatorResult.Create(R, TDataValidatorInformation.Create(LValue, GetMessage, FExecute));
 end;
 
 function TValidatorIsAlphanumeric.GetPattern: string;
@@ -57,9 +82,9 @@ begin
     TDataValidatorLocaleLanguage.tl_de_DE:
       Result := '^[0-9A-ZÄÖÜßa-zäöüß\s]+$';
     TDataValidatorLocaleLanguage.tl_fr_FR:
-      Result := '[0-9A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸa-zàâæçéèêëïîôœùûüÿ\s]+$';
+      Result := '^[0-9A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸa-zàâæçéèêëïîôœùûüÿ\s]+$';
     TDataValidatorLocaleLanguage.tl_it_IT:
-      Result := '[0-9A-ZÀÉÈÌÎÓÒÙa-zàéèìîóòù\s]+$';
+      Result := '^[0-9A-ZÀÉÈÌÎÓÒÙa-zàéèìîóòù\s]+$';
     TDataValidatorLocaleLanguage.tl_es_ES:
       Result := '^[0-9A-ZÁÉÍÑÓÚÜa-záéíñóúü\s]+$';
     TDataValidatorLocaleLanguage.tl_ru_RU:

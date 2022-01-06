@@ -1,11 +1,36 @@
 {
-  *************************************
-  Created by Danilo Lucas
-  Github - https://github.com/dliocode
-  *************************************
+  ********************************************************************************
+
+  Github - https://github.com/dliocode/datavalidator
+
+  ********************************************************************************
+
+  MIT License
+
+  Copyright (c) 2021 Danilo Lucas
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  ********************************************************************************
 }
 
-unit Validator.IsCNPJ;
+unit Validator.IsCNPJ; // (Brasil) Cadastro Nacional de Pessoas Jurídicas
 
 interface
 
@@ -18,7 +43,7 @@ type
   private
     function Validate(const ACNPJ: string): Boolean;
   public
-    function Checked: IDataValidatorResult;
+    function Check: IDataValidatorResult;
     constructor Create(const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil);
   end;
 
@@ -28,11 +53,11 @@ implementation
 
 constructor TValidatorIsCNPJ.Create(const AMessage: string; const AExecute: TDataValidatorInformationExecute = nil);
 begin
-  FMessage := AMessage;
-  FExecute := AExecute;
+  SetMessage(AMessage);
+  SetExecute(AExecute);
 end;
 
-function TValidatorIsCNPJ.Checked: IDataValidatorResult;
+function TValidatorIsCNPJ.Check: IDataValidatorResult;
 var
   LValue: string;
   R: Boolean;
@@ -51,14 +76,18 @@ begin
   if FIsNot then
     R := not R;
 
-  Result := TDataValidatorResult.New(R, TDataValidatorInformation.New(LValue, FMessage, FExecute));
+  Result := TDataValidatorResult.Create(R, TDataValidatorInformation.Create(LValue, GetMessage, FExecute));
 end;
 
 function TValidatorIsCNPJ.Validate(const ACNPJ: string): Boolean;
 var
   LCNPJ: string;
-  LDig13, LDig14: ShortString;
-  S, I, R, LPeso: Integer;
+  LSum: Integer;
+  LPeso: Integer;
+  I: Integer;
+  LResultSum: Integer;
+  LDig13: ShortString;
+  LDig14: ShortString;
 begin
   Result := False;
 
@@ -76,41 +105,41 @@ begin
     Exit;
 
   try
-    S := 0;
+    LSum := 0;
     LPeso := 2;
 
     for I := 12 downto 1 do
     begin
-      S := S + (StrToInt(LCNPJ[I]) * LPeso);
+      LSum := LSum + (StrToInt(LCNPJ[I]) * LPeso);
       LPeso := LPeso + 1;
 
       if (LPeso = 10) then
         LPeso := 2;
     end;
 
-    R := S mod 11;
-    if ((R = 0) or (R = 1)) then
+    LResultSum := LSum mod 11;
+    if ((LResultSum = 0) or (LResultSum = 1)) then
       LDig13 := '0'
     else
-      str((11 - R): 1, LDig13);
+      str((11 - LResultSum): 1, LDig13);
 
-    S := 0;
+    LSum := 0;
     LPeso := 2;
 
     for I := 13 downto 1 do
     begin
-      S := S + (StrToInt(LCNPJ[I]) * LPeso);
+      LSum := LSum + (StrToInt(LCNPJ[I]) * LPeso);
       LPeso := LPeso + 1;
 
       if (LPeso = 10) then
         LPeso := 2;
     end;
 
-    R := S mod 11;
-    if ((R = 0) or (R = 1)) then
+    LResultSum := LSum mod 11;
+    if ((LResultSum = 0) or (LResultSum = 1)) then
       LDig14 := '0'
     else
-      str((11 - R): 1, LDig14);
+      str((11 - LResultSum): 1, LDig14);
 
     Result := (LDig13 = ShortString(LCNPJ[13])) and (LDig14 = ShortString(LCNPJ[14]));
   except
